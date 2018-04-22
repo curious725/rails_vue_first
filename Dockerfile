@@ -1,6 +1,24 @@
 FROM ruby:2.2.6
 RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs
-  \ yarn
+
+# Yarn
+ENV YARN_VERSION=1.6.0
+RUN set -ex \
+    && for key in \
+      6A010C5166006599AA17F08146C2130DFD2497F5 \
+    ; do \
+      gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
+      gpg --keyserver keyserver.pgp.com --recv-keys "$key" || \
+      gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" ; \
+    done \
+    && curl -fSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
+    && curl -fSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz.asc" \
+    && gpg --batch --verify yarn-v${YARN_VERSION}.tar.gz.asc yarn-v${YARN_VERSION}.tar.gz \
+    && mkdir -p /opt/yarn \
+    && tar -xzf yarn-v${YARN_VERSION}.tar.gz -C /opt/yarn --strip-components=1 \
+    && ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn \
+    && ln -s /opt/yarn/bin/yarn /usr/local/bin/yarnpkg \
+    && rm yarn-v${YARN_VERSION}.tar.gz.asc yarn-v${YARN_VERSION}.tar.gz
 RUN mkdir /rails_vue_first
 WORKDIR /rails_vue_first
 COPY Gemfile /rails_vue_first/Gemfile
